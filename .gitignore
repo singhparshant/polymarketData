@@ -1,0 +1,21 @@
+# Ignore virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Ignore environment variable files
+.env
+**/.env
+.env.*  # optional: .env.local, .env.dev, etc.
+**/.env.*
+
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignore IDE/editor config files
+.vscode/
+.idea/
+*.swp
