@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 from web3 import Web3
-from fetch_blocks import fetch_all_token_transfers, fetch_token_transfers
+from fetch_blocks import fetch_all_token_transfers
 from fetch_transactions import (
     get_trade_info_from_hash,
     process_transaction_hashes_parallel,

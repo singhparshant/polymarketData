@@ -24,27 +24,6 @@ w3 = Web3(Web3.HTTPProvider(RPC_URL))
 w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
 
 
-def fetch_token_transfers(address, contract_address=None):
-    """Fetch ERC-20 token transfers for a given address from Polygon."""
-    params = {
-        "module": "account",
-        "action": "tokentx",
-        "address": address,
-        "startblock": "0",
-        "endblock": "99999999",
-        "page": "1",
-        "offset": "10000",
-        "sort": "desc",
-        "apikey": POLYGON_API_KEY,
-    }
-
-    if contract_address:
-        params["contractaddress"] = contract_address
-
-    response = requests.get(POLYGON_API_URL, params=params)
-    return response.json()
-
-
 def convert_to_json_serializable(obj):
     """Convert Web3 objects to JSON serializable format."""
     if hasattr(obj, "hex"):  # Handles HexBytes and similar objects
