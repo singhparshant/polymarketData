@@ -13,34 +13,30 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 from tqdm import tqdm
 from collections import defaultdict
+from dotenv import load_dotenv
 
 # w3 = Web3(Web3.HTTPProvider("https://polygon-rpc.com"))
+load_dotenv()
+POLYGON_API_KEY = os.getenv("POLYGON_API_KEY")
+
 w31 = Web3(
-    Web3.HTTPProvider(
-        "https://polygon-mainnet.g.alchemy.com/v2/Pa3ZrVMnPqImqE54JSAZQ_nMit7VNSep"
-    )
+    Web3.HTTPProvider(f"https://polygon-mainnet.g.alchemy.com/v2/{os.getenv("w31")}")
 )
 
 w32 = Web3(
-    Web3.HTTPProvider(
-        "https://polygon-mainnet.g.alchemy.com/v2/viKYeYeomDiZD3FiWCdgOYH0WjUGV5JN"
-    )
+    Web3.HTTPProvider(f"https://polygon-mainnet.g.alchemy.com/v2/{os.getenv("w32")}")
 )
 
 w33 = Web3(
-    Web3.HTTPProvider(
-        "https://polygon-mainnet.g.alchemy.com/v2/xfDPUedlSjzqbxqcKmATmdV5roMQgJO2"
-    )
+    Web3.HTTPProvider(f"https://polygon-mainnet.g.alchemy.com/v2/{os.getenv("w33")}")
 )
 
 w34 = Web3(
-    Web3.HTTPProvider(
-        "https://polygon-mainnet.g.alchemy.com/v2/KIVje_uKFG-DSq4bd0bkP37sOiV33T0z"
-    )
+    Web3.HTTPProvider(f"https://polygon-mainnet.g.alchemy.com/v2/{os.getenv("w34")}")
 )
 
 w35 = Web3(
-    Web3.HTTPProvider("https://polygon-mainnet.g.alchemy.com/v2/VuVfDrUzJ7wNfHuH9zNrf")
+    Web3.HTTPProvider(f"https://polygon-mainnet.g.alchemy.com/v2/{os.getenv("w35")}")
 )
 
 

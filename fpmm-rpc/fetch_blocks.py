@@ -1,3 +1,4 @@
+from json import load
 from pymongo import MongoClient
 import requests
 from web3 import Web3
@@ -5,11 +6,15 @@ from web3.middleware import ExtraDataToPOAMiddleware
 from datetime import datetime
 from pprint import pprint
 import time
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # API and RPC configuration
 POLYGON_API_KEY = [
-    "JWCRQA414H59TVAVPFM4HRZ76SITKD9BJI",
-    "FX8M12AVYDMYRZKMS1IM1NAKY8CK7SBVEI",
+    os.getenv("POLYGON_API_KEY"),
+    os.getenv("POLYGON_API_KEY_2"),
 ]
 POLYGON_API_URL = "https://api.polygonscan.com/api"
 RPC_URL = "https://polygon-rpc.com"
