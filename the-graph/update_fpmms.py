@@ -1,3 +1,5 @@
+# This script adds the conditionId for FPMMs in a MongoDB collection
+
 import os
 import time
 from dotenv import load_dotenv
