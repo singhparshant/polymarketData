@@ -169,7 +169,7 @@ def populate_timestamps_for_events():
     # Fetch events, but only the blockNumber and _id
     # We fetch transaction_hash as well, as it might be indexed and used elsewhere
     events_to_update = list(
-        db.FPMMFundingRemoved.find(
+        db.FPMMSell.find(
             {"timestamp": {"$exists": False}}, {"blockNumber": 1, "transaction_hash": 1}
         ).limit(200000)
     )
@@ -259,7 +259,7 @@ def populate_timestamps_for_events():
             # Perform bulk write when chunk size is reached
             if len(updates) >= bulk_write_chunk_size:
                 try:
-                    result = db.FPMMFundingRemoved.bulk_write(updates, ordered=False)
+                    result = db.FPMMSell.bulk_write(updates, ordered=False)
                     total_updated += result.modified_count
                     # print(f"Bulk wrote {result.modified_count} timestamp updates.")
                 except Exception as e:
@@ -270,7 +270,7 @@ def populate_timestamps_for_events():
     # Perform final bulk write for remaining updates
     if updates:
         try:
-            result = db.FPMMFundingRemoved.bulk_write(updates, ordered=False)
+            result = db.FPMMSell.bulk_write(updates, ordered=False)
             total_updated += result.modified_count
             # print(f"Final bulk wrote {result.modified_count} timestamp updates.")
         except Exception as e:

@@ -94,7 +94,7 @@ def fetch_all_token_transfers(address, contract_address=None, thread_idx=0):
             break
 
         page += 1
-        time.sleep(0.1)  # Add small delay to avoid rate limiting
+        time.sleep(0.2)  # Add small delay to avoid rate limiting
 
     return all_transfers
 

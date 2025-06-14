@@ -1,11 +1,14 @@
 from pymongo import MongoClient
 from web3 import Web3
 from fetch_blocks import fetch_all_token_transfers
+
 from fetch_transactions import (
     get_trade_info_from_hash,
     process_transaction_hashes_parallel,
 )
-from pprint import pprint, pformat
+
+# from populate_withdraw_fees import process_transaction_hashes_parallel
+from pprint import pp, pprint, pformat
 import time
 from tqdm import tqdm
 import signal
@@ -62,16 +65,14 @@ def signal_handler(signum, frame):
     sys.exit(1)
 
 
-def process_single_fpmm(
-    doc, target_db, existing_hashes_set, max_retries=3, thread_idx=0
-):
+def process_single_fpmm(doc, db, existing_hashes_set, thread_idx=0):
     """Process a single FPMM with retries."""
+    max_retries = 3
     retry_count = 0
     while retry_count < max_retries:
         try:
             # Store current FPMM address in signal handler
             signal_handler.current_fpmm = doc["fpmm_address"]
-
             try:
                 transfers = fetch_all_token_transfers(doc["fpmm_address"], thread_idx)
             except Exception as e:
@@ -94,13 +95,16 @@ def process_single_fpmm(
                     unique_transfers[tx_hash] = transfer
 
             transfers = list(unique_transfers.values())
+            print("Length of transfers: ", len(transfers))
 
             transfer_hashes = [
                 transfer.get("hash")
                 for transfer in transfers
-                if transfer.get("hash") not in existing_hashes_set
+                # if transfer.get("hash") not in existing_hashes_set
             ]
-            process_transaction_hashes_parallel(transfer_hashes)
+            process_transaction_hashes_parallel(
+                transfer_hashes, db, doc["fpmm_address"]
+            )
 
             return True
 
@@ -139,6 +143,7 @@ def process_fpmm_addresses(batch_size=100, num_threads=4):
     def process_batch(batch_docs, thread_idx):
         nonlocal processed_count  # So we can modify the outer variable
         for doc in batch_docs:
+            print(f"[Thread {thread_idx}] Processing {doc['fpmm_address']}")
             success = process_single_fpmm(doc, db, existing_hashes_set, thread_idx)
             if success:
                 with count_lock:
@@ -155,8 +160,13 @@ def process_fpmm_addresses(batch_size=100, num_threads=4):
             db.fpmms.find(
                 {
                     "total_interactions": {"$gt": 0},
+                    # "fpmm_address": {
+                    #     "$gt": "0x041b005181c5375bf9687465f28899c98d1ab0db"
+                    # },
                     "fpmm_address": {
-                        "$gt": "0x041b005181c5375bf9687465f28899c98d1ab0db"
+                        "$in": [
+                            "0x99f9429907b190d0aaae0895f2e2d0518750d60a",
+                        ]
                     },
                 },
                 sort=[("fpmm_address", 1)],
