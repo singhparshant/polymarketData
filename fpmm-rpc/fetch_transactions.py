@@ -207,20 +207,22 @@ def parse_fpmmtrade_logs(
 
     trade_info["trader"] = "0x" + event_log["topics"][1][-40:]
 
-    if trade_info["type"] == "Buy":
-        for log in receipt_dict["logs"]:
-            topic0 = "0x" + log["topics"][0]
-            if (
-                log["address"].lower() == CONTRACTS["USDC"].lower()
-                and topic0 == EVENT_SIGNATURES["Transfer"]
-            ):
-                from_address = "0x" + log["topics"][1][-40:]
-                if from_address.lower() == trade_info["trader"].lower():
-                    trade_info["inputAssetId"] = CONTRACTS["USDC"]
-                    trade_info["inputAmount"] = int(log["data"][2:], 16)
-                    break
+    # if trade_info["type"] == "Buy":
+    #     trade_info["inputAmount"] = rich_log["args"]["investmentAmount"]
+    #     trade_info["inputAssetId"] = CONTRACTS["USDC"]
+    # for log in receipt_dict["logs"]:
+    #     topic0 = "0x" + log["topics"][0]
+    #     if (
+    #         log["address"].lower() == CONTRACTS["USDC"].lower()
+    #         and topic0 == EVENT_SIGNATURES["Transfer"]
+    #     ):
+    #         from_address = "0x" + log["topics"][1][-40:]
+    #         if from_address.lower() == trade_info["trader"].lower():
+    #             trade_info["inputAssetId"] = CONTRACTS["USDC"]
+    #             trade_info["inputAmount"] = int(log["data"][2:], 16)
+    #             break
 
-    elif trade_info["type"] == "Sell":
+    if trade_info["type"] == "Sell":
         for log in receipt_dict["logs"]:
             if (
                 log["address"].lower() == CONTRACTS["ConditionalTokens"].lower()
@@ -242,6 +244,8 @@ def parse_fpmmtrade_logs(
     if trade_info["type"] == "Buy":
         trade_info["outputAmount"] = rich_log["args"]["outcomeTokensBought"]
         trade_info["CPMMFee"] = rich_log["args"]["feeAmount"]
+        trade_info["inputAmount"] = rich_log["args"]["investmentAmount"]
+        trade_info["inputAssetId"] = CONTRACTS["USDC"]
 
         for log in receipt_dict["logs"]:
             if (
@@ -375,6 +379,7 @@ def process_single_hash(tx_hash, db, w3, my_contract):
                 return (tx_hash, f"Error processing an event: {event_info['error']}")
 
             trade_type = event_info.get("type")
+            # print(f"db is {db}, trade_type is {trade_type}, event_info is {event_info}")
             if not trade_type:
                 return (tx_hash, "Event info missing 'type' field")
 
@@ -397,11 +402,11 @@ def process_single_hash(tx_hash, db, w3, my_contract):
             # )
             if not collection.find_one({"transaction_hash": event_tx_hash}):
                 print(f"Adding new event {event_tx_hash} to {collection_name}")
-                # collection.update_one(
-                #     {"transaction_hash": event_tx_hash},
-                #     {"$set": sanitized_event_info},
-                #     upsert=True,
-                # )
+                collection.update_one(
+                    {"transaction_hash": event_tx_hash},
+                    {"$set": sanitized_event_info},
+                    upsert=True,
+                )
             time.sleep(0.2)  # Reduced sleep slightly
 
         # Return success after processing all events for this hash
@@ -446,7 +451,7 @@ def process_transaction_hashes_parallel(
             raise
 
     total_hashes = len(hashes)
-    print(f"Submitting {total_hashes} hashes to the executor")
+    # print(f"Submitting {total_hashes} hashes to the executor")
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [
             executor.submit(worker, (tx_hash, i)) for i, tx_hash in enumerate(hashes)
@@ -464,9 +469,15 @@ if __name__ == "__main__":
     client = MongoClient("mongodb://localhost:27017/")
     db = client["polygon_polymarket"]
 
-    hashes = list(db.FPMMFundingAdded.find({}, {"transaction_hash": 1, "_id": 0}))
-    hashes = [h["transaction_hash"] for h in hashes]
+    # hashes = list(db.FPMMFundingAdded.find({}, {"transaction_hash": 1, "_id": 0}))
+    # hashes = [h["transaction_hash"] for h in hashes]
+    hashes = [
+        "0x839f073985d679ec0a72876f4ad4cf9f85eb8b6176bbf5e936e18ef8c5a0d2d0",
+        "0xe024429928f2cbf64ac73838d287e6df378965bac1bd0865b58edfe9e2e7016a",
+        "0xffe3d93a005492c8e1ae97ce2dadda8d74725923b0d9339b92db745a2a9ab952",
+        "0x23eb20194b0202951b11f6075593b68ef038ba4f6944b39cfa2c2f4c90db4bfb",
+    ]
 
     total_hashes = len(hashes)
     print(f"Total transaction hashes to process: {total_hashes}")
-    process_transaction_hashes_parallel(hashes=hashes)
+    process_transaction_hashes_parallel(hashes=hashes, db=db)
